@@ -1,4 +1,4 @@
-// angular-virtual-scroll - v0.5.0
+// angular-virtual-scroll - v0.6.0
 
 // Include this first to define the module that the directives etc. hang off.
 //
@@ -153,7 +153,7 @@ mod.directive("sfScroller", function(){
     //
     // into `{ value: "a", collection: "b" }`
     function parseRepeatExpression(expression){
-      var match = expression.match(/^\s*([\$\w]+)\s+in\s+(\S*)\s*$/);
+      var match = expression.match(/^\s*([\$\w]+)\s+in\s+([\S\s]*)$/);
       if (! match) {
         throw new Error("Expected sfVirtualRepeat in form of '_item_ in _collection_' but got '" +
                         expression + "'.");
@@ -368,7 +368,7 @@ mod.directive("sfScroller", function(){
           var end = clip(state.firstActive + state.active,
                          state.firstVisible + state.visible + state.lowWater,
                          state.firstVisible + state.visible + state.highWater );
-          state.firstActive = Math.max(0, start);
+          state.firstActive = clip(start, 0, state.total - state.visible - state.lowWater);
           state.active = Math.min(end, state.total) - state.firstActive;
         }
 
