@@ -1,10 +1,13 @@
-// angular-virtual-scroll - v0.6.1
+// angular-virtual-scroll - v0.6.2
 
 // Include this first to define the module that the directives etc. hang off.
 //
 (function(){
 'use strict';
-angular.module('sf.virtualScroll', []);
+angular.module('sf.virtualScroll', []).constant('sfVirtualScroll', {
+  release: "0.6.2",
+  version: "0.6.2"
+});
 }());
 
 
@@ -392,14 +395,14 @@ mod.directive("sfScroller", function(){
 
         function sfVirtualRepeatWatchExpression(scope){
           var coll = scope.$eval(ident.collection);
-          if( coll.length !== state.total ){
+          if( coll && coll.length !== state.total ){
             state.total = coll.length;
             recomputeActive();
           }
           return {
             start: state.firstActive,
             active: state.active,
-            len: coll.length
+            len: coll ? coll.length : 0
           };
         }
 
