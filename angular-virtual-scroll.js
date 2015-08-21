@@ -6,7 +6,7 @@
 'use strict';
 angular.module('sf.virtualScroll', []).constant('sfVirtualScroll', {
   release: "0.6.2",
-  version: "0.6.2"
+  version: "0.6.1-16-gfe8967b"
 });
 }());
 
@@ -287,7 +287,8 @@ mod.directive("sfScroller", function(){
 
         var rendered = [];
         var rowHeight = 0;
-        var sticky = false;
+        var scrolledToBottom = false;
+        var stickyEnabled = "sticky" in attrs;
         var dom = findViewportAndContent(iterStartElement);
         // The list structure is controlled by a few simple (visible) variables:
         var state = 'ngModel' in attrs ? scope.$eval(attrs.ngModel) : {};
@@ -305,6 +306,9 @@ mod.directive("sfScroller", function(){
         state.lowWater = state.lowWater || 100;
         // - The point at which we remove old elements
         state.highWater = state.highWater || 300;
+        // - Keep the scroll event from constantly firing
+        state.threshold = state.threshold || 1;
+        var lastFixPos = 0;
         // TODO: now watch the water marks
 
         setContentCss(dom.content);
@@ -381,16 +385,20 @@ mod.directive("sfScroller", function(){
           if( !rowHeight ){
             return;
           }
-          // Enter the angular world for the state change to take effect.
-          scope.$apply(function(){
-            state.firstVisible = Math.floor(evt.target.scrollTop / rowHeight);
-            state.visible = Math.ceil(dom.viewport[0].clientHeight / rowHeight);
-            $log.debug('scroll to row %o', state.firstVisible);
-            sticky = evt.target.scrollTop + evt.target.clientHeight >= evt.target.scrollHeight;
-            recomputeActive();
-            $log.debug(' state is now %o', state);
-            $log.debug(' sticky = %o', sticky);
-          });
+          var diff = Math.abs(evt.target.scrollTop - lastFixPos);
+          if(diff > (state.threshold * rowHeight)){
+            // Enter the angular world for the state change to take effect.
+            scope.$apply(function(){
+              state.firstVisible = Math.floor(evt.target.scrollTop / rowHeight);
+              state.visible = Math.ceil(dom.viewport[0].clientHeight / rowHeight);
+              $log.debug('scroll to row %o', state.firstVisible);
+              var sticky = evt.target.scrollTop + evt.target.clientHeight >= evt.target.scrollHeight;
+              recomputeActive();
+              $log.debug(' state is now %o', state);
+              $log.debug(' sticky = %o', sticky);
+            });
+            lastFixPos = evt.target.scrollTop;
+          }
         }
 
         function sfVirtualRepeatWatchExpression(scope){
@@ -470,7 +478,7 @@ mod.directive("sfScroller", function(){
             dom.content.css({'padding-top': newValue.start * rowHeight + 'px'});
           }
           dom.content.css({'height': newValue.len * rowHeight + 'px'});
-          if( sticky ){
+          if( scrolledToBottom && stickyEnabled ){
             dom.viewport[0].scrollTop = dom.viewport[0].clientHeight + dom.viewport[0].scrollHeight;
           }
         }
