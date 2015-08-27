@@ -6,7 +6,7 @@
 'use strict';
 angular.module('sf.virtualScroll', []).constant('sfVirtualScroll', {
   release: "0.6.2",
-  version: "0.6.1-20-ge67b829"
+  version: "0.6.1-23-g4164846"
 });
 }());
 
@@ -382,16 +382,14 @@ mod.directive("sfScroller", function(){
             return;
           }
           var scrollTop = evt.target.scrollTop;
-          var scrollHeight = evt.target.scrollHeight;
-          var clientHeight = evt.target.clientHeight;
           var diff = Math.abs(scrollTop - lastFixPos);
           if(diff > (state.threshold * rowHeight)){
           // Enter the angular world for the state change to take effect.
             state.firstVisible = Math.floor(scrollTop / rowHeight);
             state.visible = Math.ceil(dom.viewport[0].clientHeight / rowHeight);
-            var sticky = scrollTop + clientHeight >= scrollHeight;
+            var sticky = scrollTop + evt.target.clientHeight >= evt.target.scrollHeight;
             recomputeActive();
-            scope.digest();
+            scope.$digest();
             lastFixPos = scrollTop;
           }
         }
